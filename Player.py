@@ -5,14 +5,17 @@ class Player(object):
 
 ############################################################################################################################################    
     # Initialize the player object
-    def __init__(self, name, position, team):
+    def __init__(self, gsis_id,name, position, team):
+        
+        self.gsis_id = gsis_id
         self.name = name
         self.position = position
         validTeams = [i[0] for i in nflgame.teams]
+        
         if team in validTeams:
             self.team = team
         else:
-            RuntimeError("Please Check the Team Name.") 
+            RuntimeError("Please Check the DST Name.") 
             
         
 ############################################################################################################################################    
@@ -37,9 +40,8 @@ class Player(object):
         for p in currentPlayers:
             # Make sure the position, player name and team name matches 
             # with the current player's
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team :
-                    return p.player.status
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                return p.player.status
                 
 ############################################################################################################################################        
     # Get the number of passing yards for the player    
@@ -70,7 +72,7 @@ class Player(object):
             # with the current player's and that the stats dictionary has 
             # the passing_yds key 
             if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "passing_yds" in p.stats:
+                if p.player is not None and p.player.gsis_id==self.gsis_id:
                     passYards = p.stats["passing_yds"]
             
         return passYards
@@ -101,10 +103,9 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the passing_tds key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "passing_tds" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "passing_tds" in p.stats:
                     passTDs = p.stats["passing_tds"]
-            
         return passTDs
 
 ############################################################################################################################################        
@@ -131,8 +132,8 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the rushing_yds key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "rushing_yds" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "rushing_yds" in p.stats:
                     rushYards = p.stats["rushing_yds"]
 
         return rushYards
@@ -160,10 +161,9 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the rushing_yds key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "rushing_tds" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "rushing_tds" in p.stats:
                     rushTDs = p.stats["rushing_tds"]
-
         return rushTDs
 
 ############################################################################################################################################        
@@ -190,8 +190,8 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the receiving_yds key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "receiving_yds" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "receiving_yds" in p.stats:
                     receiveYards = p.stats["receiving_yds"]
         
         return receiveYards
@@ -219,10 +219,10 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the receiving_rec key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "receiving_rec" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "receiving_rec" in p.stats:
                     receptions = p.stats["receiving_rec"]
-        
+
         return receptions
 
 
@@ -249,8 +249,8 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the receiving_tds key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "receiving_tds" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "receiving_tds" in p.stats:
                     receiveTDs = p.stats["receiving_tds"]
         
         return receiveTDs
@@ -277,10 +277,9 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the receiving_rec key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "fumbles_trcv" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "fumbles_trcv" in p.stats:
                     OFRTD = p.stats["fumbles_trcv"]
-        
         return OFRTD
         
 ############################################################################################################################################        
@@ -306,10 +305,9 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the passing_ints key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "passing_ints" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "passing_ints" in p.stats:
                     interceptions = p.stats["passing_ints"]
-        
         return interceptions
         
 ############################################################################################################################################        
@@ -334,12 +332,11 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the fumbles_lost key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "fumbles_lost" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "fumbles_lost" in p.stats:
                     fumbles = p.stats["fumbles_lost"]
         return fumbles
         
-
 ############################################################################################################################################        
     # Get the number of two points made by the player    
     def getTwoPtsPassing(self,season,week):
@@ -362,8 +359,8 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the fumbles_lost key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "passing_twoptm" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "passing_twoptm" in p.stats:
                     twoPts = p.stats["passing_twoptm"]
         return twoPts
 
@@ -388,13 +385,13 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the fumbles_lost key 
-            if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "receiving_twoptm" in p.stats:
+            if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if "receiving_twoptm" in p.stats:
                     twoPts = p.stats["receiving_twoptm"]
         return twoPts
 
 ############################################################################################################################################        
-    # Get the number of stwo points made by passing plays    
+    # Get the number of two points made by passing plays    
     def getTwoPtsRushing(self,season,week):
         #Value that will be returned from the function.
         twoPts = 0
@@ -415,11 +412,9 @@ class Player(object):
             # with the current player's and that the stats dictionary has 
             # the fumbles_lost key 
             if p.player is not None:
-                if p.name==self.name and p.player.position == self.position and p.player.team == self.team and "rushing_twoptm" in p.stats:
+                if "rushing_twoptm" in p.stats:
                     twoPts = p.stats["rushing_twoptm"]
         return twoPts
-
-
 
 ############################################################################################################################################        
     # Get if the game was played at home or away for a player in a given week+season
