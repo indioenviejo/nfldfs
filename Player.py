@@ -72,7 +72,8 @@ class Player(object):
             # with the current player's and that the stats dictionary has 
             # the passing_yds key 
             if p.player is not None:
-                if p.player is not None and p.player.gsis_id==self.gsis_id:
+                if p.player is not None and p.player.gsis_id==self.gsis_id and "passing_yds" in p.stats:
+                    print p.stats
                     passYards = p.stats["passing_yds"]
             
         return passYards
@@ -103,7 +104,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the passing_tds key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "passing_tds" in p.stats:
                 if "passing_tds" in p.stats:
                     passTDs = p.stats["passing_tds"]
         return passTDs
@@ -132,7 +133,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the rushing_yds key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "rushing_yds" in p.stats:
                 if "rushing_yds" in p.stats:
                     rushYards = p.stats["rushing_yds"]
 
@@ -161,7 +162,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the rushing_yds key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "rushing_tds" in p.stats:
                 if "rushing_tds" in p.stats:
                     rushTDs = p.stats["rushing_tds"]
         return rushTDs
@@ -190,7 +191,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the receiving_yds key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "receiving_yds" in p.stats:
                 if "receiving_yds" in p.stats:
                     receiveYards = p.stats["receiving_yds"]
         
@@ -219,7 +220,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the receiving_rec key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "" in p.stats:
                 if "receiving_rec" in p.stats:
                     receptions = p.stats["receiving_rec"]
 
@@ -249,7 +250,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the receiving_tds key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "receiving_tds" in p.stats:
                 if "receiving_tds" in p.stats:
                     receiveTDs = p.stats["receiving_tds"]
         
@@ -277,7 +278,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the receiving_rec key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "fumbles_trcv" in p.stats:
                 if "fumbles_trcv" in p.stats:
                     OFRTD = p.stats["fumbles_trcv"]
         return OFRTD
@@ -305,7 +306,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the passing_ints key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "passing_ints" in p.stats:
                 if "passing_ints" in p.stats:
                     interceptions = p.stats["passing_ints"]
         return interceptions
@@ -332,7 +333,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the fumbles_lost key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "fumbles_lost" in p.stats:
                 if "fumbles_lost" in p.stats:
                     fumbles = p.stats["fumbles_lost"]
         return fumbles
@@ -359,7 +360,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the fumbles_lost key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "passing_twoptm" in p.stats:
                 if "passing_twoptm" in p.stats:
                     twoPts = p.stats["passing_twoptm"]
         return twoPts
@@ -385,7 +386,7 @@ class Player(object):
             # Make sure the position, player name and team name matches 
             # with the current player's and that the stats dictionary has 
             # the fumbles_lost key 
-            if p.player is not None and p.player.gsis_id==self.gsis_id:
+            if p.player is not None and p.player.gsis_id==self.gsis_id and "receiving_twoptm" in p.stats:
                 if "receiving_twoptm" in p.stats:
                     twoPts = p.stats["receiving_twoptm"]
         return twoPts
@@ -412,7 +413,7 @@ class Player(object):
             # with the current player's and that the stats dictionary has 
             # the fumbles_lost key 
             if p.player is not None:
-                if "rushing_twoptm" in p.stats:
+                if "rushing_twoptm" in p.stats and "rushing_twoptm" in p.stats:
                     twoPts = p.stats["rushing_twoptm"]
         return twoPts
 
