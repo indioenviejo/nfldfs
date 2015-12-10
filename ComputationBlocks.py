@@ -2,12 +2,13 @@
 import pandas as pda
 import Player
 import nflgame
+import numpy as np
 
 # Returns the players GSIS ID
 def getPlayerID(name,team):
     # Find the player
     player = nflgame.find(name,team)[0]
-    return player.gsis_name 
+    return player.gsis_id 
 
 
 def getPlayerStatsSummary(df,season,weeks):
@@ -35,6 +36,9 @@ def getPlayerStatsSummary(df,season,weeks):
         position = [] 
         teams = []
         status = []
+        gsisIDs = []
+        salaries = []
+        nextGame = []
         ##########################################################################################################
         # Draft Kings names Jaguars as JAX while nflgame returns JAC 
         if df.loc[df.index[i],"teamAbbrev"].upper() == "JAX":
@@ -43,7 +47,7 @@ def getPlayerStatsSummary(df,season,weeks):
             team = df.loc[df.index[i],"teamAbbrev"].upper()
             
         gsisID = getPlayerID(df.loc[df.index[i],"Name"],team)            
-        x = Player.Player(gsisID,df.loc[df.index[i],"Name"],df.loc[df.index[i],"Name"],df.loc[df.index[i],"Position"],team)
+        x = Player.Player(gsisID,df.loc[df.index[i],"Name"],df.loc[df.index[i],"Position"],team)
         
         for j in weeks:
             name.extend([x.name])
@@ -65,11 +69,58 @@ def getPlayerStatsSummary(df,season,weeks):
             twoPtsRushing.extend([x.getTwoPtsRushing(season,j)])
             weekStatus.extend([j])
             status.extend([x.getWeekStatus(season,j)])
+            gsisIDs.extend([gsisID])
+            salaries.extend([df.loc[df.index[i],"Salary"]])
+            nextGame.extend([df.loc[df.index[i],"GameInfo"]])
             print x.name, j
         
-        tempDF = pda.DataFrame(zip(name,teams,position,weekStatus,homeFldAdv,status,fumblesLost,OFRTD,passingInterceptions,passingTDs,passingYards,receivingTDs,receivingYards,receptions,rushingTDs,rushingYards,twoPtsPassing,twoPtsReceiving,twoPtsRushing))
-        tempDF.columns = ["Name","Team","Position","Week","HomeFldAdv","Status","FumblesLost","OFRTD","PassingInterceptions","PassingTDs","PassingYards","ReceivingTDs","ReceivingYards","Receptions","RushingTDs","RushingYards","TwoPtsPassing","TwoPtsReceiving","TwoPtsRushing"]
+        tempDF = pda.DataFrame(zip(name,teams,position,gsisIDs,salaries,weekStatus,homeFldAdv,status,fumblesLost,OFRTD,passingInterceptions,passingTDs,passingYards,receivingTDs,receivingYards,receptions,rushingTDs,rushingYards,twoPtsPassing,twoPtsReceiving,twoPtsRushing))
+        tempDF.columns = ["Name","Team","Position","GSIS_ID","Salary","Week","HomeFldAdv","Status","FumblesLost","OFRTD","PassingInterceptions","PassingTDs","PassingYards","ReceivingTDs","ReceivingYards","Receptions","RushingTDs","RushingYards","TwoPtsPassing","TwoPtsReceiving","TwoPtsRushing"]
         print tempDF.head()
         playerStats = playerStats.append(tempDF)
     
     return playerStats
+
+
+
+def statsbyHomeFldAvd(df,indexCol):
+    
+    hmefldGrp = df.groupby([indexCol])
+    
+    for n,g in hmefldGrp:
+        if n == "AWY":
+            playerStatsAway = g
+        if n == "HME":
+            playerStatsHME = g
+    
+    returnList = [playerStatsAway,playerStatsHME]  
+    return returnList
+
+
+def getAvgPerformance(df):
+
+    players = df.groupby(["Name","Team","Position","GSIS_ID"])
+    playerAvgPerf = pda.DataFrame()
+    playerNames = []
+    playerTeams = []
+    playerPositions = []
+    gsis = []
+    salaries = []
+    
+    for n,g in players:
+        g = g[g.columns[6:]]
+        playerAvgPerf  = playerAvgPerf.append(g.mean(),ignore_index=True)
+        playerNames.extend([n[0]])
+        playerTeams.extend([n[1]])
+        playerPositions.extend([n[2]])
+        gsis.extend([n[3]])
+        salaries.extend(list(np.unique(df["Salary"])))
+        
+    playerAvgPerf["Name"] = pda.Series(playerNames)
+    playerAvgPerf["Team"] = pda.Series(playerTeams)
+    playerAvgPerf["Position"] = pda.Series(playerPositions)
+    playerAvgPerf["GSIS_ID"] = pda.Series(gsis)
+    playerAvgPerf["HmeFldAdv"] = pda.Series(["AWY"]*len(playerNames))
+    
+    return playerAvgPerf
+
