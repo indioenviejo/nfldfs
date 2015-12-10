@@ -17,15 +17,15 @@ weeks = [a+1 for a in weeks]
 # Read Salary and next game info Data
 df = pda.read_csv(root+"DKSalaries_Week12.csv")
 # Remove Defense List
-df = df[df["Position"] <> "DST"]
+dfOff = df[df["Position"] <> "DST"]
 
-#df2 = df.loc[0:2,:]
-#print df2
+dfOff = dfOff.loc[0:0,:]
+print dfOff
 
 # Get the player statistics information
-playerStats = ComputationBlocks.getPlayerStatsSummary(df,season,weeks)
+playerStats = ComputationBlocks.getPlayerStatsSummary(dfOff,season,weeks)
 
-# Group the statistics by home field advantage
+# Group the statistics by GSIS ID
 players = playerStats.groupby(["GSIS_ID"])
 
 playerStatsAway = pda.DataFrame()
@@ -38,59 +38,44 @@ for n,g in players:
     playerStatsHME = playerStatsHME.append(tempHME)
 
 # Get average stats  @ home and away for each player 
-playerAWYAvgPerf = ComputationBlocks.getAvgPerformance(playerStatsAway)
-playerHMEAvgPerf = ComputationBlocks.getAvgPerformance(playerStatsHME)
+playerAWYAvgPerf = ComputationBlocks.getPlayerAvgPerformance(playerStatsAway)
+playerHMEAvgPerf = ComputationBlocks.getPlayerAvgPerformance(playerStatsHME)
+
+playerAWYAvgPerf.to_csv("/home/raghav/playerAway.csv")
+
+###############################################################################################################
+ 
+# Read the data file with defense team names
+
+# Get Defense Teams
+dfDef = df[df["Position"] == "DST"]
+
+dfDef = dfDef.iloc[0:3,:]
+
+# Get the Stats for each defense team
+defStats = ComputationBlocks.getDefStatsSummary(dfDef,season,weeks)
+# Group the stats by team
+defense =  defStats.groupby(["Team"])
 
 
-# ###############################################################################################################
-# 
-# # Read the data file with defense team names
-# df = pda.read_csv("C:\\Users\\212367183\\Documents\\DK_DEF\\def.csv")
-# defStats = ComputationBlocks.getDefStatsSummary(df,season,weeks)
-# defStats.to_csv("C:\\Users\\212367183\\Documents\\DK_DEF\\defStatsW12.csv")
-# 
-# hmefldGrp = defStats.groupby(["HomeFldAdv"])
-# 
-# for n,g in hmefldGrp:
-#     if n == "AWY":
-#         defStatsAway = g
-#     if n == "HME":
-#         defStatsHME = g
-# 
-# defStatsAway.to_csv("C:\\Users\\212367183\\Documents\\DK_DEF\\defStatsAwayW12.csv")
-# defStatsHME.to_csv("C:\\Users\\212367183\\Documents\\DK_DEF\\defStatsHomeW12.csv")
-# 
+defStatsAway = pda.DataFrame()
+defStatsHME = pda.DataFrame()
+
+
+# Get stats for each player at and away from home
+for n,g in defense:
+    print g
+    [tempAway,tempHME] =  ComputationBlocks.statsbyHomeFldAvd(g,"HomeFldAdv")    
+    defStatsAway = defStatsAway.append(tempAway)
+    defStatsHME = defStatsHME.append(tempHME)
+
+
 # ###############################################################################################################
 # #Get Average Performance
 # ###############################################################################################################
-# 
-# # Read the data file with defense team names
-# defStatsAway = pda.read_csv("C:\\Users\\212367183\\Documents\\DK_DEF\\defStatsAwayW12.csv")
-# 
-# 
-# teams = defStatsAway.groupby(["Team"])
-# teamAWYAvgPerf = pda.DataFrame()
-# teamNames = []
-# 
-# for n,g in teams:
-#     g = g[g.columns[3:]]
-#     teamAWYAvgPerf  = teamAWYAvgPerf.append(g.mean(),ignore_index=True)
-#     teamNames.extend([n])
-# 
-# teamAWYAvgPerf["Team"] = pda.Series(teamNames)
-# teamAWYAvgPerf.to_csv("C:\\Users\\212367183\\Documents\\DK_DEF\\defAvgStatsAwayW12.csv",index=None)
-# 
-# 
-# # Read the data file with defense team names
-# defStatsAway = pda.read_csv("C:\\Users\\212367183\\Documents\\DK_DEF\\defStatsHomeW12.csv")
-# teams = defStatsAway.groupby(["Team"])
-# teamHMEAvgPerf = pda.DataFrame()
-# teamNames = []
-# 
-# for n,g in teams:
-#     g = g[g.columns[3:]]
-#     teamHMEAvgPerf  = teamHMEAvgPerf.append(g.mean(),ignore_index=True)
-#     teamNames.extend([n])
-# 
-# teamHMEAvgPerf["Team"] = pda.Series(teamNames)
-# teamHMEAvgPerf.to_csv("C:\\Users\\212367183\\Documents\\DK_DEF\\defAvgStatsHomeW12.csv",index=None)
+ 
+defAWYAvgPerf =  ComputationBlocks.getDefenseAvgPerformance(defStatsAway)
+defHMEAvgPerf =  ComputationBlocks.getDefenseAvgPerformance(defStatsHME)
+
+
+defAWYAvgPerf.to_csv("/home/raghav/defAvgAway.csv")

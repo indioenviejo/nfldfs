@@ -1,6 +1,7 @@
 
 import pandas as pda
 import Player
+import DST
 import nflgame
 import numpy as np
 
@@ -97,7 +98,7 @@ def statsbyHomeFldAvd(df,indexCol):
     return returnList
 
 
-def getAvgPerformance(df):
+def getPlayerAvgPerformance(df):
 
     players = df.groupby(["Name","Team","Position","GSIS_ID"])
     playerAvgPerf = pda.DataFrame()
@@ -120,7 +121,95 @@ def getAvgPerformance(df):
     playerAvgPerf["Team"] = pda.Series(playerTeams)
     playerAvgPerf["Position"] = pda.Series(playerPositions)
     playerAvgPerf["GSIS_ID"] = pda.Series(gsis)
+    playerAvgPerf["Salary"] = pda.Series(salaries)
     playerAvgPerf["HmeFldAdv"] = pda.Series(["AWY"]*len(playerNames))
     
+    
     return playerAvgPerf
+
+
+
+def getDefenseAvgPerformance(df):
+    
+    teams = df.groupby(["Team"])
+    teamAvgPerf = pda.DataFrame()
+    teamNames = []
+    salaries = []
+    
+    for n,g in teams:
+        g2 = g[g.columns[4:]]
+        teamAvgPerf  = teamAvgPerf.append(g2.mean(),ignore_index=True)
+        teamNames.extend([n])
+        salaries.extend(list(np.unique(g["Salary"])))
+    teamAvgPerf["Team"] = pda.Series(teamNames)
+    teamAvgPerf["Salary"] = pda.Series(salaries)
+    
+    
+    return teamAvgPerf
+    
+
+
+def getDefStatsSummary(dfFilter,season,weeks):
+    defStats = pda.DataFrame()
+    for i in range(dfFilter.shape[0]):
+        
+        print i
+        defRecTDs = []
+        defRecs = []
+        defTDs =[]
+        FGBlk =[]
+        homeFldAdv = []
+        interceptions = []
+        KRTDs = []    
+        PRTDs = []
+        passingTDs = []
+        passingYards = []
+        pointsGivenUp = []
+        receptions = []
+        rushingTDs = []
+        rushingYards = []
+        sacks = []
+        safetys = []
+        xtraPtBlk = []
+        weekStatus = []
+        salaries = []
+        teams = []
+    
+        if dfFilter.loc[dfFilter.index[i],"teamAbbrev"].upper() == "JAX":
+            teamName = "JAC"
+        else:
+            teamName = dfFilter.loc[dfFilter.index[i],"teamAbbrev"].upper()
+        
+        x = DST.DST(teamName)
+        
+        for j in weeks:
+            print x.team, j
+            defRecTDs.extend([x.getDefRecoveryTDsScored(season,j)])
+            defRecs.extend([x.getDefRecoveriesMade(season,j)])
+            defTDs.extend([x.getDefTDsScored(season,j)])
+            FGBlk.extend([x.getDefFGBlkMade(season,j)])
+            homeFldAdv.extend([x.getHomeFldAdv(season,j)])
+            KRTDs.extend([x.getKickRetTDsMade(season,j)])
+            PRTDs.extend([x.getPuntRetTDsMade(season,j)])
+            passingTDs.extend([x.getDefPassingTDsAllowed(season,j)])
+            passingYards.extend([x.getDefPassingYardsAllowed(season,j)])
+            pointsGivenUp.extend([x.getPointsGivenUp(season,j)])
+            receptions.extend([x.getDefReceptionsAllowed(season,j)])
+            rushingTDs.extend([x.getDefRushingTDsAllowed(season,j)])
+            rushingYards.extend([x.getDefRushingYardsAllowed(season,j)])
+            sacks.extend([x.getDefSacks(season,j)])
+            safetys.extend([x.getDefSafetysMade(season,j)])
+            xtraPtBlk.extend([x.getDefXtraPtBlkMade(season,j)])
+            weekStatus.extend([j])
+            interceptions.extend([x.getDefInterceptions(season,j)])
+            teams.extend([x.team])
+            salaries.extend([dfFilter.index[i],"Salary"])
+            
+        tempDF = pda.DataFrame(zip(teams,salaries,weekStatus,homeFldAdv,defRecTDs,defRecs,defTDs,FGBlk,interceptions,KRTDs,PRTDs,passingTDs,passingYards,pointsGivenUp,receptions,rushingTDs,rushingYards,sacks,safetys,xtraPtBlk))
+        tempDF.columns = ["Team","Salary","Week","HomeFldAdv","DefenseRecTDs","DefenseRecoveries","DefenseTDs","FGBlk","Interceptions","KickRetTDs","PuntRetTDs","PassingTDsAllowed","PassingYardsAllowed","PointsGivenUp","ReceptionsAllowed","RushingTDsAllowed","RushingYardsAllowed","Sacks","Safetys","ExtraPointBlk"]
+        print tempDF
+        defStats = defStats.append(tempDF)        
+    
+    return defStats
+
 
