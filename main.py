@@ -8,30 +8,36 @@ os.chdir(root)
 
 import ComputationBlocks
 
-
+#####################################################################################
 season = 2015
 weeks = range(12)
 weeks = [a+1 for a in weeks]
+#####################################################################################
 
+# Read Salary and next game info Data
 df = pda.read_csv(root+"DKSalaries_Week12.csv")
+# Remove Defense List
 df = df[df["Position"] <> "DST"]
 
+#df2 = df.loc[0:2,:]
+#print df2
 
-df2 = df.loc[0:2,:]
-print df2
+# Get the player statistics information
+playerStats = ComputationBlocks.getPlayerStatsSummary(df,season,weeks)
 
-playerStats = ComputationBlocks.getPlayerStatsSummary(df2,season,weeks)
-
+# Group the statistics by home field advantage
 players = playerStats.groupby(["GSIS_ID"])
 
 playerStatsAway = pda.DataFrame()
 playerStatsHME = pda.DataFrame()
 
+# Get stats for each player at and away from home
 for n,g in players:
     [tempAway,tempHME] =  ComputationBlocks.statsbyHomeFldAvd(g,"HomeFldAdv")    
     playerStatsAway = playerStatsAway.append(tempAway)
     playerStatsHME = playerStatsHME.append(tempHME)
 
+# Get average stats  @ home and away for each player 
 playerAWYAvgPerf = ComputationBlocks.getAvgPerformance(playerStatsAway)
 playerHMEAvgPerf = ComputationBlocks.getAvgPerformance(playerStatsHME)
 
