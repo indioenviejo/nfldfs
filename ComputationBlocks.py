@@ -75,8 +75,8 @@ def getPlayerStatsSummary(df,season,weeks):
             nextGame.extend([df.loc[df.index[i],"GameInfo"]])
             print x.name, j
         
-        tempDF = pda.DataFrame(zip(name,teams,position,gsisIDs,salaries,weekStatus,homeFldAdv,status,fumblesLost,OFRTD,passingInterceptions,passingTDs,passingYards,receivingTDs,receivingYards,receptions,rushingTDs,rushingYards,twoPtsPassing,twoPtsReceiving,twoPtsRushing))
-        tempDF.columns = ["Name","Team","Position","GSIS_ID","Salary","Week","HomeFldAdv","Status","FumblesLost","OFRTD","PassingInterceptions","PassingTDs","PassingYards","ReceivingTDs","ReceivingYards","Receptions","RushingTDs","RushingYards","TwoPtsPassing","TwoPtsReceiving","TwoPtsRushing"]
+        tempDF = pda.DataFrame(zip(name,teams,position,gsisIDs,weekStatus,homeFldAdv,nextGame,status,salaries,fumblesLost,OFRTD,passingInterceptions,passingTDs,passingYards,receivingTDs,receivingYards,receptions,rushingTDs,rushingYards,twoPtsPassing,twoPtsReceiving,twoPtsRushing))
+        tempDF.columns = ["Name","Team","Position","GSIS_ID","Week","HomeFldAdv","NextGame","Status","Salary","FumblesLost","OFRTD","PassingInterceptions","PassingTDs","PassingYards","ReceivingTDs","ReceivingYards","Receptions","RushingTDs","RushingYards","TwoPtsPassing","TwoPtsReceiving","TwoPtsRushing"]
         print tempDF.head()
         playerStats = playerStats.append(tempDF)
     
@@ -88,6 +88,9 @@ def statsbyHomeFldAvd(df,indexCol):
     
     hmefldGrp = df.groupby([indexCol])
     
+    playerStatsAway = None
+    playerStatsHME = None
+    
     for n,g in hmefldGrp:
         if n == "AWY":
             playerStatsAway = g
@@ -98,32 +101,35 @@ def statsbyHomeFldAvd(df,indexCol):
     return returnList
 
 
-def getPlayerAvgPerformance(df):
+def getPlayerAvgPerformance(df,hmfld):
 
-    players = df.groupby(["Name","Team","Position","GSIS_ID"])
+    players = df.groupby(["Name","Team","Position","GSIS_ID","NextGame"])
     playerAvgPerf = pda.DataFrame()
     playerNames = []
     playerTeams = []
     playerPositions = []
     gsis = []
     salaries = []
+    nextGame = []
+    
     
     for n,g in players:
-        g = g[g.columns[6:]]
+        g = g[g.columns[8:]]
         playerAvgPerf  = playerAvgPerf.append(g.mean(),ignore_index=True)
         playerNames.extend([n[0]])
         playerTeams.extend([n[1]])
         playerPositions.extend([n[2]])
         gsis.extend([n[3]])
-        salaries.extend(list(np.unique(df["Salary"])))
+        salaries.extend(list(np.unique(g["Salary"])))
+        nextGame.extend([n[4]])
         
     playerAvgPerf["Name"] = pda.Series(playerNames)
     playerAvgPerf["Team"] = pda.Series(playerTeams)
     playerAvgPerf["Position"] = pda.Series(playerPositions)
     playerAvgPerf["GSIS_ID"] = pda.Series(gsis)
     playerAvgPerf["Salary"] = pda.Series(salaries)
-    playerAvgPerf["HmeFldAdv"] = pda.Series(["AWY"]*len(playerNames))
-    
+    playerAvgPerf["HmeFldAdv"] = pda.Series([hmfld]*len(playerNames))
+    playerAvgPerf["NextGame"] = pda.Series(nextGame)    
     
     return playerAvgPerf
 
@@ -203,7 +209,7 @@ def getDefStatsSummary(dfFilter,season,weeks):
             weekStatus.extend([j])
             interceptions.extend([x.getDefInterceptions(season,j)])
             teams.extend([x.team])
-            salaries.extend([dfFilter.index[i],"Salary"])
+            salaries.extend([dfFilter.loc[dfFilter.index[i],"Salary"]])
             
         tempDF = pda.DataFrame(zip(teams,salaries,weekStatus,homeFldAdv,defRecTDs,defRecs,defTDs,FGBlk,interceptions,KRTDs,PRTDs,passingTDs,passingYards,pointsGivenUp,receptions,rushingTDs,rushingYards,sacks,safetys,xtraPtBlk))
         tempDF.columns = ["Team","Salary","Week","HomeFldAdv","DefenseRecTDs","DefenseRecoveries","DefenseTDs","FGBlk","Interceptions","KickRetTDs","PuntRetTDs","PassingTDsAllowed","PassingYardsAllowed","PointsGivenUp","ReceptionsAllowed","RushingTDsAllowed","RushingYardsAllowed","Sacks","Safetys","ExtraPointBlk"]
@@ -213,3 +219,120 @@ def getDefStatsSummary(dfFilter,season,weeks):
     return defStats
 
 
+def normalizeTeamStats(df):
+    teams = df["Team"]
+    dfNorm = df.drop("Team",1)
+    dfNorm = (dfNorm - dfNorm.mean())/ dfNorm.mean()
+    dfNorm["Team"] = teams
+    return dfNorm
+
+
+#################################################################################################
+
+# Get Matches
+
+def getHomenAwy(gameInfo):
+
+    away = []
+    home = []
+    
+    for info in gameInfo:
+        away.extend([info.split(" ")[0].split("@")[0]])
+        home.extend([info.split(" ")[0].split("@")[1]])
+    
+    matches = zip(away,home)
+    matches = list(set(matches))
+    
+    away = [ a[0] for a in matches]
+    home = [ a[1] for a in matches]
+    
+    away = [a.upper() if a.upper()<>"JAX" else "JAC" for a in away]
+    home = [a.upper() if a.upper()<>"JAX" else "JAC" for a in home]
+    #################################################################################################
+    
+    returnList = [away,home]
+    
+    return returnList
+
+
+
+
+
+##########################################################################################################
+# Offensive Matchup Performance
+
+
+def offMatchupPerformance (playerHMEAvgPerf,playerAWYAvgPerf,teamHMEAvgPerfNorm,teamAWYAvgPerfNorm,home,away):
+    
+    ###############################################################################################
+    ##########################################################################################################
+    fumblesLost = []
+    OFRTD = []
+    passingInterceptions = []
+    passingTDs = []
+    passingYards = []
+    receivingTDs = []
+    receivingYards = []
+    receptions = []
+    rushingTDs = []
+    rushingYards = []
+    twoPtsPassing = []
+    twoPtsReceiving = []
+    twoPtsRushing = []
+    name = [] 
+    position = [] 
+    teams = []
+    salaries = []
+    
+    ##########################################################################################################    
+    #playerConsolidatedAvgPerfStats
+    PCAPStats = playerHMEAvgPerf.append(playerAWYAvgPerf)
+    grouped = PCAPStats.groupby(["GSIS_ID"])
+    
+    defTeamHme = teamHMEAvgPerfNorm
+    defTeamAwy = teamAWYAvgPerfNorm
+    
+    opponent = None
+    
+    for n,g in grouped:
+        if pda.unique(g["Team"])[0] in away:
+            g = g[g["HmeFldAdv"]=="AWY"]
+            if len(g.index) > 0 :
+                index = [i for i,j in enumerate(away) if j == pda.unique(g["Team"])[0]]
+                opponent = home[index[0]]
+
+        if pda.unique(g["Team"])[0] in home:
+            g = g[g["HmeFldAdv"]=="HME"]
+            if len(g.index) > 0:
+                index = [i for i,j in enumerate(home) if j == pda.unique(g["Team"])[0]]
+                opponent = away[index[0]]                
+                
+        oppStats = defTeamHme[defTeamHme["Team"] == opponent]
+        #DefenseRecoveries Interceptions PassingTDsAllowed    PassingYardsAllowed    PointsGivenUp    PuntRetTDs    ReceptionsAllowed    RushingTDsAllowed    RushingYardsAllowed
+        oppStats = oppStats[["DefenseRecoveries","Interceptions","PassingTDsAllowed","PassingYardsAllowed","ReceptionsAllowed","RushingTDsAllowed","RushingYardsAllowed"]]
+        
+        fumblesLost.extend([(1+oppStats["DefenseRecoveries"][oppStats.index[0]])*g["FumblesLost"][g.index[0]]])
+        OFRTD.extend([g["OFRTD"][g.index[0]]])
+        passingInterceptions.extend([(1+oppStats["Interceptions"][oppStats.index[0]])*g["PassingInterceptions"][g.index[0]]])
+        passingTDs.extend([(1+oppStats["PassingTDsAllowed"][oppStats.index[0]])*g["PassingTDs"][g.index[0]]])
+        passingYards.extend([(1+oppStats["PassingYardsAllowed"][oppStats.index[0]])*g["PassingYards"][g.index[0]]])
+        receivingTDs.extend([(1+oppStats["PassingTDsAllowed"][oppStats.index[0]])*g["ReceivingTDs"][g.index[0]]])    
+        receivingYards.extend([(1+oppStats["PassingYardsAllowed"][oppStats.index[0]])*g["ReceivingYards"][g.index[0]]])
+        receptions.extend([(1+oppStats["ReceptionsAllowed"][oppStats.index[0]])*g["Receptions"][g.index[0]]])
+        rushingTDs.extend([(1+oppStats["RushingTDsAllowed"][oppStats.index[0]])*g["RushingTDs"][g.index[0]]])
+        rushingYards.extend([(1+oppStats["RushingYardsAllowed"][oppStats.index[0]])*g["RushingYards"][g.index[0]]])
+        twoPtsPassing.extend([g["TwoPtsPassing"][g.index[0]]])
+        twoPtsReceiving.extend([g["TwoPtsReceiving"][g.index[0]]])
+        twoPtsRushing.extend([g["TwoPtsRushing"][g.index[0]]])
+        name.extend([pda.unique(g["Name"])[0]]) 
+        position.extend([pda.unique(g["Position"])[0]]) 
+        teams.extend([pda.unique(g["Team"])[0]])
+        salaries.extend([g["Salary"][g.index[0]]])
+
+    offPerf = pda.DataFrame(zip(name,teams,position,salaries,fumblesLost,OFRTD,passingInterceptions,passingTDs,passingYards,receivingTDs,receivingYards,receptions,rushingTDs,rushingYards,twoPtsPassing,twoPtsReceiving,twoPtsRushing))
+    offPerf.columns = ["Name","Team","Position","Salary","FumblesLost","OFRTD","PassingInterceptions","PassingTDs","PassingYards","ReceivingTDs","ReceivingYards","Receptions","RushingTDs","RushingYards","TwoPtsPassing","TwoPtsReceiving","TwoPtsRushing"]
+    
+    return offPerf
+    
+    
+    
